@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NewsFlow — Живі Новини</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c26;--border:rgba(255,255,255,.07);
+  --accent:#e8c547;--accent2:#4f9eff;--accent3:#ff5f5f;--text:#f0f0f0;--muted:#6b6b80;
+  --fd:"Playfair Display",serif;--fb:"DM Sans",sans-serif;--fm:"DM Mono",monospace;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;line-height:1.5;}
+header{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.92);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;
+  justify-content:space-between;height:60px;}
+.logo{font-family:var(--fd);font-size:1.4rem;color:var(--accent);letter-spacing:-.02em;}
+.logo span{color:var(--text);}
+.live-badge{display:flex;align-items:center;gap:6px;font-family:var(--fm);font-size:.72rem;color:var(--accent3);letter-spacing:.08em;}
+.live-dot{width:7px;height:7px;background:var(--accent3);border-radius:50%;animation:lp 1.5s ease-in-out infinite;}
+@keyframes lp{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.3;transform:scale(.7);}}
+.header-time{font-family:var(--fm);font-size:.75rem;color:var(--muted);}
+.ticker-wrap{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden;white-space:nowrap;padding:10px 0;}
+.ticker-track{display:inline-block;animation:ts 45s linear infinite;}
+.ticker-track:hover{animation-play-state:paused;}
+@keyframes ts{from{transform:translateX(100vw);}to{transform:translateX(-100%);}}
+.ticker-item{display:inline-block;margin:0 28px;font-family:var(--fm);font-size:.78rem;color:var(--muted);}
+.ticker-item strong{color:var(--accent);margin-right:6px;}
+.container{max-width:1400px;margin:0 auto;padding:24px;}
+.informers{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:28px;}
+.inf-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;
+  position:relative;overflow:hidden;transition:border-color .2s,transform .2s;}
+.inf-card:hover{border-color:rgba(255,255,255,.15);transform:translateY(-2px);}
+.inf-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--clr,var(--accent));}
+.inf-label{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.inf-value{font-family:var(--fd);font-size:1.9rem;font-weight:700;color:var(--clr,var(--accent));line-height:1;}
+.inf-sub{font-size:.72rem;color:var(--muted);margin-top:4px;}
+.main-grid{display:grid;grid-template-columns:1fr 320px;gap:20px;}
+@media(max-width:900px){.main-grid{grid-template-columns:1fr;}}
+.section-title{font-family:var(--fd);font-size:1.1rem;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.section-title::after{content:"";flex:1;height:1px;background:var(--border);}
+.status-bar{font-family:var(--fm);font-size:.72rem;color:var(--muted);padding:6px 0;margin-bottom:8px;}
+.status-ok{color:#4caf82;}.status-err{color:var(--accent3);}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+.filter-btn{font-family:var(--fm);font-size:.72rem;letter-spacing:.06em;padding:5px 14px;border-radius:20px;
+  border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s;}
+.filter-btn:hover,.filter-btn.active{background:var(--accent);color:#000;border-color:var(--accent);}
+.news-list{display:flex;flex-direction:column;gap:12px;}
+.news-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;
+  display:flex;gap:16px;cursor:pointer;transition:border-color .2s,background .2s;
+  animation:ci .4s ease both;text-decoration:none;color:inherit;}
+.news-card:hover{border-color:rgba(255,255,255,.15);background:var(--surface2);}
+@keyframes ci{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.news-tag{font-family:var(--fm);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:2px 8px;border-radius:4px;background:var(--tag-bg,rgba(232,197,71,.12));
+  color:var(--tag-clr,var(--accent));white-space:nowrap;align-self:flex-start;margin-top:2px;min-width:72px;text-align:center;}
+.news-body{flex:1;min-width:0;}
+.news-title{font-family:var(--fd);font-size:1rem;font-weight:700;line-height:1.3;margin-bottom:6px;}
+.news-desc{font-size:.82rem;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.news-meta{display:flex;align-items:center;gap:12px;margin-top:8px;font-family:var(--fm);font-size:.68rem;color:var(--muted);}
+.news-source{color:var(--accent2);}
+.skeleton{background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%);
+  background-size:200% 100%;animation:sh 1.4s infinite;border-radius:6px;}
+@keyframes sh{from{background-position:200% 0;}to{background-position:-200% 0;}}
+.sk-line{height:12px;margin-bottom:8px;}
+.load-more-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:10px 28px;
+  border-radius:8px;cursor:pointer;font-family:var(--fm);font-size:.78rem;letter-spacing:.06em;
+  transition:border-color .2s;display:block;margin:16px auto 0;}
+.load-more-btn:hover{border-color:var(--accent);}
+.error-msg{color:var(--accent3);font-size:.82rem;padding:14px;background:rgba(255,95,95,.08);
+  border-radius:8px;border:1px solid rgba(255,95,95,.2);}
+.sidebar{display:flex;flex-direction:column;gap:20px;}
+.widget{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.widget-title{font-family:var(--fm);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.search-box{display:flex;gap:8px;}
+.search-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:8px 12px;color:var(--text);font-family:var(--fb);font-size:.85rem;outline:none;transition:border-color .2s;}
+.search-input:focus{border-color:var(--accent);}
+.search-btn{background:var(--accent);color:#000;border:none;border-radius:8px;padding:8px 14px;
+  font-weight:500;cursor:pointer;font-size:.85rem;transition:opacity .2s;}
+.search-btn:hover{opacity:.85;}
+.tag-cloud{display:flex;flex-wrap:wrap;gap:6px;}
+.tag-item{font-family:var(--fm);font-size:.68rem;padding:4px 10px;border-radius:20px;
+  border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .2s;}
+.tag-item:hover{border-color:var(--accent);color:var(--accent);}
+.activity-chart{display:flex;align-items:flex-end;gap:4px;height:60px;margin-top:8px;}
+.act-bar{flex:1;background:var(--accent2);border-radius:3px 3px 0 0;opacity:.45;transition:opacity .2s;cursor:pointer;}
+.act-bar:hover{opacity:1;}
+.act-labels{display:flex;gap:4px;margin-top:4px;}
+.act-label{flex:1;text-align:center;font-family:var(--fm);font-size:.58rem;color:var(--muted);}
+.source-list{display:flex;flex-direction:column;gap:10px;}
+.source-item{display:flex;align-items:center;gap:10px;}
+.source-bar-wrap{flex:1;height:4px;background:var(--surface2);border-radius:4px;overflow:hidden;}
+.source-bar{height:100%;background:var(--accent2);border-radius:4px;transition:width .8s ease;}
+.source-name{font-size:.78rem;width:90px;color:var(--text);}
+.source-pct{font-family:var(--fm);font-size:.68rem;color:var(--muted);width:28px;text-align:right;}
+footer{margin-top:40px;padding:20px 24px;border-top:1px solid var(--border);display:flex;
+  justify-content:space-between;align-items:center;font-family:var(--fm);font-size:.7rem;color:var(--muted);}
+
+/* ── EXTRAS ── */
+.pw-wrap{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.pw-msg{font-size:.72rem;margin-top:0;}
+.pw-ok{color:#4caf82;} .pw-err{color:#ff5f5f;}
+.map-img-wrap{position:relative;display:inline-block;}
+.map-img-wrap img{border-radius:8px;display:block;}
+.map-scale-btns{display:flex;gap:8px;margin-top:8px;}
+.map-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:5px 14px;
+  border-radius:6px;cursor:pointer;font-family:var(--fm);font-size:.72rem;transition:border-color .2s;}
+.map-btn:hover{border-color:var(--accent);color:var(--accent);}
+.sel-styled{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:7px 10px;color:var(--text);font-family:var(--fb);font-size:.85rem;outline:none;
+  cursor:pointer;transition:border-color .2s;}
+.sel-styled:focus{border-color:var(--accent);}
+.streets-list{display:flex;flex-direction:column;gap:4px;margin-top:8px;max-height:160px;overflow-y:auto;}
+.street-item{font-size:.8rem;color:var(--text);padding:4px 8px;border-radius:5px;
+  background:var(--surface2);border-left:2px solid var(--accent2);}
+.news-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.news-table th{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);
+  color:var(--muted);font-family:var(--fm);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;}
+.news-table td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);}
+.news-table tr:hover td{background:var(--surface2);}
+.news-table input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;cursor:pointer;}
+.total-row{font-family:var(--fm);font-size:.82rem;color:var(--accent);padding:10px 10px 0;display:flex;justify-content:space-between;}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">News<span>Flow</span></div>
+  <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+  <div class="header-time" id="clock">--:--:--</div>
+</header>
+
+<!-- Навігація до додаткових сторінок -->
+<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:8px 24px;display:flex;gap:12px;flex-wrap:wrap;">
+  <a href="form1.html" style="font-family:var(--fm);font-size:.72rem;color:var(--muted);text-decoration:none;padding:4px 12px;border:1px solid var(--border);border-radius:20px;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">📋 Форма 1: Список і кнопка</a>
+  <a href="form2.html" style="font-family:var(--fm);font-size:.72rem;color:var(--muted);text-decoration:none;padding:4px 12px;border:1px solid var(--border);border-radius:20px;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">📍 Форма 2: Район → Вулиця</a>
+  <a href="form3.html" style="font-family:var(--fm);font-size:.72rem;color:var(--muted);text-decoration:none;padding:4px 12px;border:1px solid var(--border);border-radius:20px;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">☑ Форма 3: Прапорці</a>
+  <a href="js-lab.html" style="font-family:var(--fm);font-size:.72rem;color:var(--muted);text-decoration:none;padding:4px 12px;border:1px solid var(--border);border-radius:20px;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Js-lab</a>
+</div>
+
+<div class="ticker-wrap">
+  <div class="ticker-track" id="ticker">
+    <span class="ticker-item"><strong>●</strong>Завантаження стрічки новин…</span>
+  </div>
+</div>
+
+<div class="container">
+  <div class="informers">
+    <div class="inf-card" style="--clr:#e8c547">
+      <div class="inf-label">Новин завантажено</div>
+      <div class="inf-value" id="inf-total">—</div>
+      <div class="inf-sub">З усіх джерел</div>
+    </div>
+    <div class="inf-card" style="--clr:#4f9eff">
+      <div class="inf-label">Джерел</div>
+      <div class="inf-value" id="inf-sources">—</div>
+      <div class="inf-sub">RSS-каналів</div>
+    </div>
+    <div class="inf-card" style="--clr:#4caf82">
+      <div class="inf-label">Категорій</div>
+      <div class="inf-value" id="inf-cats">—</div>
+      <div class="inf-sub">Тематик</div>
+    </div>
+    <div class="inf-card" style="--clr:#ff5f5f">
+      <div class="inf-label">Оновлено</div>
+      <div class="inf-value" id="inf-time" style="font-size:1.3rem">—</div>
+      <div class="inf-sub">Авто-оновлення 5хв</div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div>
+      <div class="section-title">📰 Стрічка новин</div>
+      <div class="status-bar" id="status-bar">⏳ Завантаження…</div>
+      <div class="filters" id="filters">
+        <button class="filter-btn active" data-cat="all">Усі</button>
+      </div>
+      <div class="news-list" id="news-list">
+        <div class="news-card" style="pointer-events:none">
+          <div style="width:60px"><div class="skeleton sk-line" style="width:52px;height:22px;border-radius:4px"></div></div>
+          <div style="flex:1"><div class="skeleton sk-line" style="width:80%"></div><div class="skeleton sk-line" style="width:55%"></div><div class="skeleton sk-line" style="width:35%;margin-top:10px"></div></div>
+        </div>
+        <div class="news-card" style="pointer-events:none">
+          <div style="width:60px"><div class="skeleton sk-line" style="width:52px;height:22px;border-radius:4px"></div></div>
+          <div style="flex:1"><div class="skeleton sk-line" style="width:75%"></div><div class="skeleton sk-line" style="width:50%"></div><div class="skeleton sk-line" style="width:30%;margin-top:10px"></div></div>
+        </div>
+        <div class="news-card" style="pointer-events:none">
+          <div style="width:60px"><div class="skeleton sk-line" style="width:52px;height:22px;border-radius:4px"></div></div>
+          <div style="flex:1"><div class="skeleton sk-line" style="width:90%"></div><div class="skeleton sk-line" style="width:65%"></div><div class="skeleton sk-line" style="width:40%;margin-top:10px"></div></div>
+        </div>
+      </div>
+      <button class="load-more-btn" id="load-more" style="display:none">Завантажити ще ↓</button>
+    </div>
+
+    <div class="sidebar">
+      <div class="widget">
+        <div class="widget-title">🔍 Пошук новин</div>
+        <div class="search-box">
+          <input class="search-input" id="search-input" placeholder="Введіть запит…" type="text">
+          <button class="search-btn" id="search-btn">→</button>
+        </div>
+      </div>
+      <div class="widget">
+        <div class="widget-title">🏷 Популярні теми</div>
+        <div class="tag-cloud" id="tag-cloud">
+          <div class="skeleton sk-line" style="width:100%;height:26px;border-radius:20px"></div>
+        </div>
+      </div>
+      <div class="widget">
+        <div class="widget-title">📊 Активність по годинах</div>
+        <div class="activity-chart" id="act-chart"><span style="color:var(--muted);font-size:.75rem;align-self:center">…</span></div>
+        <div class="act-labels" id="act-labels"></div>
+      </div>
+      <div class="widget">
+        <div class="widget-title">📡 Топ джерела</div>
+        <div class="source-list" id="source-list">
+          <div class="skeleton sk-line" style="width:100%;height:14px"></div>
+          <div class="skeleton sk-line" style="width:100%;height:14px"></div>
+          <div class="skeleton sk-line" style="width:100%;height:14px"></div>
+        </div>
+      </div>
+
+      <!-- Приклад 1: Пароль -->
+      <div class="widget">
+        <div class="widget-title">🔑 Перевірка паролю</div>
+        <div class="pw-wrap">
+          <input class="search-input" id="pw-input" type="password" placeholder="Введіть пароль…" style="flex:1" oninput="checkPassword(this.value)">
+        </div>
+        <div id="pw-msg" class="pw-msg" style="margin-top:6px;min-height:16px;"></div>
+      </div>
+
+      <!-- Приклад 2: Карта посилань -->
+      <div class="widget">
+        <div class="widget-title">🗺 Карта посилань</div>
+        <div class="map-img-wrap">
+          <img id="map-img" src="https://picsum.photos/seed/mapnews/280/120" usemap="#newsmap" alt="Карта новин" style="width:280px;height:120px;">
+          <map name="newsmap">
+            <area id="area1" shape="rect" coords="10,10,130,110" href="#" alt="Технології" title="Технології" onclick="alert('Технології');return false;">
+            <area id="area2" shape="rect" coords="150,10,270,110" href="#" alt="Наука" title="Наука" onclick="alert('Наука');return false;">
+          </map>
+        </div>
+        <div class="map-scale-btns">
+          <button class="map-btn" onclick="scaleMap(1.2)">🔍 Збільшити</button>
+          <button class="map-btn" onclick="scaleMap(0.8)">🔎 Зменшити</button>
+          <button class="map-btn" onclick="scaleMap(1)">↺ Скинути</button>
+        </div>
+      </div>
+
+      <!-- Приклад 3: Район → Вулиця -->
+      <div class="widget">
+        <div class="widget-title">📍 Район → Вулиця (Львів)</div>
+        <select class="sel-styled" id="district-sel" onchange="onDistrictChange()">
+          <option value="">— Виберіть район —</option>
+          <option value="Галицький">Галицький</option>
+          <option value="Личаківський">Личаківський</option>
+          <option value="Франківський">Франківський</option>
+          <option value="Сихівський">Сихівський</option>
+          <option value="Залізничний">Залізничний</option>
+        </select>
+        <div id="streets-wrap" style="display:none;margin-top:10px;">
+          <select class="sel-styled" id="street-sel" size="5" style="height:auto;"></select>
+        </div>
+      </div>
+
+      <!-- Приклад 4: Таблиця підписок -->
+      <div class="widget">
+        <div class="widget-title">🛒 Підписки на теми</div>
+        <table class="news-table" id="subs-table">
+          <thead><tr><th></th><th>Тема</th><th>Ціна/міс</th></tr></thead>
+          <tbody>
+            <tr><td><input type="checkbox" onchange="calcTotal()"></td><td>Технології</td><td data-price="99">99 грн</td></tr>
+            <tr><td><input type="checkbox" onchange="calcTotal()"></td><td>Наука</td><td data-price="79">79 грн</td></tr>
+            <tr><td><input type="checkbox" onchange="calcTotal()"></td><td>Світові новини</td><td data-price="129">129 грн</td></tr>
+            <tr><td><input type="checkbox" onchange="calcTotal()"></td><td>Аналітика</td><td data-price="149">149 грн</td></tr>
+            <tr><td><input type="checkbox" onchange="calcTotal()"></td><td>Спорт</td><td data-price="59">59 грн</td></tr>
+            <tr><td><input type="checkbox" onchange="calcTotal()"></td><td>Культура</td><td data-price="49">49 грн</td></tr>
+          </tbody>
+        </table>
+        <div class="total-row"><span>Разом:</span><span id="subs-total">0 грн</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>NewsFlow © 2025 — Агрегатор RSS-новин</span>
+  <span id="footer-count">Завантаження…</span>
+</footer>
+
+<script>
+const PROXY = 'https://allorigins.win/get?disableCache=true&url=';
+const FEEDS = [
+  {url:'https://feeds.bbci.co.uk/news/world/rss.xml',      name:'BBC World',  cat:'Світ',       clr:'#4f9eff'},
+  {url:'https://feeds.bbci.co.uk/news/technology/rss.xml', name:'BBC Tech',   cat:'Технології', clr:'#4caf82'},
+  {url:'https://feeds.bbci.co.uk/news/science_and_environment/rss.xml', name:'BBC Science', cat:'Наука', clr:'#e8c547'},
+  {url:'https://rss.nytimes.com/services/xml/rss/nyt/World.xml', name:'NYT World', cat:'Політика', clr:'#ff5f5f'},
+  {url:'https://www.theguardian.com/world/rss',             name:'Guardian',   cat:'Аналітика',  clr:'#c77dff'},
+];
+
+// Демо-дані як запасний варіант
+const FALLBACK = [
+  {title:'Глобальні переговори щодо клімату: нові угоди укладено на самміті',desc:'Лідери 50 країн погодилися скоротити викиди CO2 на 40% до 2035 року. Документ набуде чинності наступного року.',link:'#',pubDate:new Date().toISOString(),source:'BBC World',cat:'Світ',clr:'#4f9eff'},
+  {title:'Штучний інтелект змінює ринок праці: дослідження WEF',desc:'За даними нового звіту, 23% робочих місць трансформуються через автоматизацію у найближчі 5 років.',link:'#',pubDate:new Date(Date.now()-3600000).toISOString(),source:'BBC Tech',cat:'Технології',clr:'#4caf82'},
+  {title:'Вчені знайшли ознаки рідкої води на Марсі',desc:'Нові радарні дані від марсохода підтверджують існування підземних озер у полярних районах.',link:'#',pubDate:new Date(Date.now()-7200000).toISOString(),source:'BBC Science',cat:'Наука',clr:'#e8c547'},
+  {title:'Світові ринки реагують на нові торговельні угоди між США та ЄС',desc:'Фондові індекси Азії та Європи показали зростання після підписання договорів.',link:'#',pubDate:new Date(Date.now()-10800000).toISOString(),source:'NYT World',cat:'Політика',clr:'#ff5f5f'},
+  {title:'Демократія під тиском: аналіз виборів у 12 країнах 2025 року',desc:'Аналітики зафіксували тенденцію до поляризації виборчих процесів по всьому світу.',link:'#',pubDate:new Date(Date.now()-14400000).toISOString(),source:'Guardian',cat:'Аналітика',clr:'#c77dff'},
+  {title:'Прорив у квантових обчисленнях: представлено 1000-кубітний процесор',desc:'Нова розробка здатна вирішувати задачі, недоступні для класичних суперкомпютерів.',link:'#',pubDate:new Date(Date.now()-18000000).toISOString(),source:'BBC Tech',cat:'Технології',clr:'#4caf82'},
+  {title:'ООН закликає збільшити гуманітарну допомогу в зонах конфліктів',desc:'Криза охопила понад 80 мільйонів людей, потрібне термінове втручання міжнародної спільноти.',link:'#',pubDate:new Date(Date.now()-21600000).toISOString(),source:'BBC World',cat:'Світ',clr:'#4f9eff'},
+  {title:'Рекорд відновлюваної енергетики: 40% від загального виробництва',desc:'Сонячна та вітрова енергетика вперше перевищили частку вугільних електростанцій у Європі.',link:'#',pubDate:new Date(Date.now()-25200000).toISOString(),source:'Guardian',cat:'Аналітика',clr:'#c77dff'},
+  {title:'Нова вакцина від малярії схвалена ВООЗ для масового застосування',desc:'Випробування в 15 країнах Африки показали ефективність понад 75%.',link:'#',pubDate:new Date(Date.now()-28800000).toISOString(),source:'BBC Science',cat:'Наука',clr:'#e8c547'},
+  {title:'G7 погодила нові санкції щодо кіберзлочинних угрупувань',desc:'Міністри фінансів підписали спільну декларацію про протидію хакерам.',link:'#',pubDate:new Date(Date.now()-32400000).toISOString(),source:'NYT World',cat:'Політика',clr:'#ff5f5f'},
+  {title:'Великобританія запускає програму зеленого водню',desc:'Інвестиції у 2 мільярди фунтів мають забезпечити чисту енергію для 10 мільйонів домів.',link:'#',pubDate:new Date(Date.now()-36000000).toISOString(),source:'Guardian',cat:'Аналітика',clr:'#c77dff'},
+  {title:'SpaceX оголосила дату першого комерційного польоту на Місяць',desc:'Запуск заплановано на кінець 2026 року, квитки вже розпродано.',link:'#',pubDate:new Date(Date.now()-39600000).toISOString(),source:'BBC Science',cat:'Наука',clr:'#e8c547'},
+];
+
+let allArticles=[], filtered=[], activeFilter='all', searchQuery='', displayCount=10;
+
+setInterval(()=>{
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('uk-UA');
+},1000);
+
+async function fetchFeed(feed) {
+  try {
+    const resp = await fetch(PROXY + encodeURIComponent(feed.url), {signal:AbortSignal.timeout(9000)});
+    const json = await resp.json();
+    if (!json.contents) return [];
+    const dom = new DOMParser().parseFromString(json.contents, 'application/xml');
+    return [...dom.querySelectorAll('item')].slice(0,15).map(item => ({
+      title:   item.querySelector('title')?.textContent?.trim() || '',
+      desc:    (item.querySelector('description')?.textContent||'').replace(/<[^>]*>/g,'').substring(0,160).trim(),
+      link:    item.querySelector('link')?.textContent?.trim() || '#',
+      pubDate: item.querySelector('pubDate')?.textContent || new Date().toISOString(),
+      source:  feed.name, cat:feed.cat, clr:feed.clr,
+    })).filter(a=>a.title);
+  } catch(e) { console.warn(feed.name, e.message); return []; }
+}
+
+function setStatus(msg,cls){
+  const el=document.getElementById('status-bar');
+  if(el){el.textContent=msg;el.className='status-bar '+(cls||'');}
+}
+
+async function loadAllFeeds() {
+  setStatus('⏳ Завантаження RSS-каналів…','');
+  const results = await Promise.allSettled(FEEDS.map(f=>fetchFeed(f)));
+  const loaded = results.flatMap(r=>r.status==='fulfilled'?r.value:[]);
+
+  if (loaded.length===0) {
+    allArticles = FALLBACK;
+    setStatus('⚠ RSS недоступний — показано демо-дані (відкрийте через веб-сервер)','status-err');
+  } else {
+    allArticles = loaded.sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate));
+    setStatus(`✓ Завантажено ${allArticles.length} новин з ${new Set(loaded.map(a=>a.source)).size} джерел`,'status-ok');
+  }
+  updateInformers(); buildFilters(); buildTags(); buildActivityChart(); buildSourceList(); buildTicker(); applyFilter();
+}
+
+function updateInformers(){
+  document.getElementById('inf-total').textContent   = allArticles.length;
+  document.getElementById('inf-sources').textContent = [...new Set(allArticles.map(a=>a.source))].length;
+  document.getElementById('inf-cats').textContent    = [...new Set(allArticles.map(a=>a.cat))].length;
+  document.getElementById('inf-time').textContent    = new Date().toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
+}
+
+function buildFilters(){
+  const cats=['all',...new Set(allArticles.map(a=>a.cat))];
+  const wrap=document.getElementById('filters');
+  wrap.innerHTML=cats.map(c=>`<button class="filter-btn${c===activeFilter?' active':''}" data-cat="${c}">${c==='all'?'Усі':c}</button>`).join('');
+  wrap.querySelectorAll('.filter-btn').forEach(btn=>{
+    btn.onclick=()=>{
+      activeFilter=btn.dataset.cat;
+      wrap.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      displayCount=10; applyFilter();
+    };
+  });
+}
+
+function applyFilter(){
+  filtered=allArticles.filter(a=>{
+    const mc=activeFilter==='all'||a.cat===activeFilter;
+    const q=searchQuery.toLowerCase();
+    const ms=!q||a.title.toLowerCase().includes(q)||a.desc.toLowerCase().includes(q);
+    return mc&&ms;
+  });
+  renderNews();
+}
+
+function timeAgo(d){
+  const s=(Date.now()-new Date(d))/1000;
+  if(s<60) return 'щойно';
+  if(s<3600) return Math.floor(s/60)+' хв тому';
+  if(s<86400) return Math.floor(s/3600)+' год тому';
+  return Math.floor(s/86400)+' дн тому';
+}
+
+function renderNews(){
+  const list=document.getElementById('news-list');
+  const slice=filtered.slice(0,displayCount);
+  if(!slice.length){
+    list.innerHTML='<div class="error-msg">🔍 Нічого не знайдено.</div>';
+    document.getElementById('load-more').style.display='none';
+    document.getElementById('footer-count').textContent='0 результатів';
+    return;
+  }
+  list.innerHTML=slice.map((a,i)=>`
+    <a class="news-card" href="${a.link}" target="_blank" rel="noopener" style="animation-delay:${Math.min(i,8)*.05}s">
+      <div><span class="news-tag" style="--tag-bg:${a.clr}22;--tag-clr:${a.clr}">${a.cat}</span></div>
+      <div class="news-body">
+        <div class="news-title">${a.title}</div>
+        <div class="news-desc">${a.desc||'Клікніть, щоб читати далі…'}</div>
+        <div class="news-meta"><span class="news-source">${a.source}</span><span>·</span><span>${timeAgo(a.pubDate)}</span></div>
+      </div>
+    </a>`).join('');
+  const btn=document.getElementById('load-more');
+  btn.style.display=filtered.length>displayCount?'block':'none';
+  document.getElementById('footer-count').textContent=
+    `Показано ${Math.min(displayCount,filtered.length)} з ${filtered.length} новин`;
+}
+
+function buildTags(){
+  const freq={};
+  allArticles.forEach(a=>{
+    a.title.split(/\W+/).filter(w=>w.length>4).forEach(w=>{
+      const k=w.toLowerCase(); freq[k]=(freq[k]||0)+1;
+    });
+  });
+  const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,16).map(e=>e[0]);
+  document.getElementById('tag-cloud').innerHTML=
+    top.map(t=>`<div class="tag-item" onclick="setSearch('${t}')">${t}</div>`).join('');
+}
+
+function setSearch(q){
+  searchQuery=q;
+  document.getElementById('search-input').value=q;
+  displayCount=10; applyFilter();
+}
+
+function buildActivityChart(){
+  const b=Array(8).fill(0);
+  allArticles.forEach(a=>{
+    const h=new Date(a.pubDate).getHours();
+    const i=Math.floor(h/3);
+    if(i>=0&&i<8) b[i]++;
+  });
+  const max=Math.max(...b)||1;
+  const lbs=['0','3','6','9','12','15','18','21'];
+  document.getElementById('act-chart').innerHTML=
+    b.map((v,i)=>`<div class="act-bar" title="${lbs[i]}:00 — ${v} новин" style="height:${Math.max(8,(v/max)*100)}%"></div>`).join('');
+  document.getElementById('act-labels').innerHTML=
+    lbs.map(l=>`<div class="act-label">${l}:00</div>`).join('');
+}
+
+function buildSourceList(){
+  const c={};
+  allArticles.forEach(a=>{c[a.source]=(c[a.source]||0)+1;});
+  const s=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const max=s[0]?.[1]||1;
+  document.getElementById('source-list').innerHTML=s.map(([n,cnt])=>`
+    <div class="source-item">
+      <div class="source-name">${n}</div>
+      <div class="source-bar-wrap"><div class="source-bar" style="width:${Math.round((cnt/max)*100)}%"></div></div>
+      <div class="source-pct">${cnt}</div>
+    </div>`).join('');
+}
+
+function buildTicker(){
+  document.getElementById('ticker').innerHTML=
+    allArticles.slice(0,12).map(a=>
+      `<span class="ticker-item"><strong>${a.source}</strong>${a.title}</span>`).join('');
+}
+
+document.getElementById('search-btn').onclick=()=>{
+  searchQuery=document.getElementById('search-input').value.trim();
+  displayCount=10; applyFilter();
+};
+document.getElementById('search-input').addEventListener('keydown',e=>{
+  if(e.key==='Enter') document.getElementById('search-btn').click();
+});
+document.getElementById('load-more').onclick=()=>{displayCount+=10; renderNews();};
+
+loadAllFeeds();
+setInterval(loadAllFeeds, 5*60*1000);
+
+// ── Приклад 1: Пароль ──
+function checkPassword(val) {
+  const msg = document.getElementById('pw-msg');
+  const MIN = 8, MAX = 20;
+  if (!val) { msg.textContent = ''; return; }
+  if (val.length < MIN) {
+    msg.className = 'pw-msg pw-err';
+    msg.textContent = '⚠ Пароль занадто короткий (мінімум ' + MIN + ' символів)';
+  } else if (val.length > MAX) {
+    msg.className = 'pw-msg pw-err';
+    msg.textContent = '⚠ Пароль занадто довгий (максимум ' + MAX + ' символів)';
+  } else {
+    msg.className = 'pw-msg pw-ok';
+    msg.textContent = '✓ Ok';
+  }
+}
+
+// ── Приклад 2: Масштабування карти ──
+let mapBaseW = 280, mapBaseH = 120, mapScale = 1;
+const MAP_AREAS_BASE = [
+  [10,10,130,110],
+  [150,10,270,110]
+];
+function scaleMap(factor) {
+  if (factor === 1) { mapScale = 1; }
+  else { mapScale *= factor; mapScale = Math.max(0.3, Math.min(3, mapScale)); }
+  const img = document.getElementById('map-img');
+  const newW = Math.round(mapBaseW * mapScale);
+  const newH = Math.round(mapBaseH * mapScale);
+  img.style.width  = newW + 'px';
+  img.style.height = newH + 'px';
+  const areas = document.querySelectorAll('#newsmap area');
+  MAP_AREAS_BASE.forEach((coords, i) => {
+    areas[i].coords = coords.map(c => Math.round(c * mapScale)).join(',');
+  });
+}
+
+// ── Приклад 3: Район → Вулиця ──
+const STREETS = {
+  'Галицький':    ['вул. Личаківська','вул. Дорошенка','вул. Театральна','пл. Ринок','вул. Руська'],
+  'Личаківський': ['вул. Личаківська','вул. Мечникова','вул. Пасічна','вул. Стрийська','вул. Шота Руставелі'],
+  'Франківський': ['вул. Франка','вул. Наукова','вул. Куліша','вул. Коцюбинського','вул. Сахарова'],
+  'Сихівський':   ['вул. Сихівська','вул. Хуторівка','вул. Червоної Калини','вул. Кульпарківська','вул. Зубрівська'],
+  'Залізничний':  ['вул. Городоцька','вул. Залізнична','вул. Промислова','вул. Хімічна','вул. Тракт Глинянський'],
+};
+function onDistrictChange() {
+  const sel = document.getElementById('district-sel').value;
+  const wrap = document.getElementById('streets-wrap');
+  const streetSel = document.getElementById('street-sel');
+  if (!sel) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  const streets = STREETS[sel] || [];
+  streetSel.innerHTML = streets.map(s => '<option value="' + s + '">' + s + '</option>').join('');
+}
+
+// ── Приклад 4: Підрахунок суми ──
+function calcTotal() {
+  let total = 0;
+  document.querySelectorAll('#subs-table tbody tr').forEach(row => {
+    const cb = row.querySelector('input[type=checkbox]');
+    if (cb && cb.checked) {
+      total += parseInt(row.querySelector('[data-price]').dataset.price);
+    }
+  });
+  document.getElementById('subs-total').textContent = total + ' грн';
+}
+
+</script>
+</body>
+</html>

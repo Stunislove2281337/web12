@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Форма валідації — NewsFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c26;--border:rgba(255,255,255,.07);
+  --accent:#e8c547;--accent2:#4f9eff;--accent3:#ff5f5f;--text:#f0f0f0;--muted:#6b6b80;
+  --fd:"Playfair Display",serif;--fb:"DM Sans",sans-serif;--fm:"DM Mono",monospace;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;padding:24px;line-height:1.6;}
+h1{font-family:var(--fd);color:var(--accent);font-size:1.5rem;margin-bottom:6px;}
+.subtitle{color:var(--muted);font-size:.84rem;margin-bottom:24px;}
+.back{display:inline-block;font-family:var(--fm);font-size:.72rem;color:var(--muted);text-decoration:none;margin-bottom:18px;letter-spacing:.06em;}
+.back:hover{color:var(--accent);}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;max-width:660px;margin-bottom:18px;}
+.card-title{font-family:var(--fm);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.inp{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:8px 12px;color:var(--text);font-family:var(--fb);font-size:.85rem;outline:none;transition:border-color .2s;box-sizing:border-box;}
+.inp:focus{border-color:var(--accent);}
+textarea.inp{resize:vertical;min-height:80px;font-family:var(--fm);font-size:.78rem;}
+.btn{background:var(--accent);color:#000;border:none;border-radius:8px;padding:8px 20px;
+  font-weight:600;cursor:pointer;font-size:.84rem;transition:opacity .2s;margin-top:10px;}
+.btn:hover:not(:disabled){opacity:.85;}
+.btn:disabled{opacity:.28;cursor:not-allowed;}
+.btn-sec{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.btn-sec:hover:not(:disabled){border-color:var(--accent);color:var(--accent);opacity:1;}
+.msg{font-size:.78rem;margin-top:8px;min-height:18px;padding:0 2px;}
+.ok{color:#4caf82;} .err{color:#ff5f5f;} .warn{color:#e8c547;}
+.result-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:10px 14px;font-family:var(--fm);font-size:.78rem;color:var(--accent2);margin-top:10px;
+  white-space:pre-wrap;word-break:break-all;min-height:36px;}
+.row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;}
+.sel{background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:8px 10px;color:var(--text);font-family:var(--fb);font-size:.85rem;outline:none;width:100%;cursor:pointer;}
+.sel:focus{border-color:var(--accent);}
+table.demo{width:100%;border-collapse:collapse;margin-bottom:12px;}
+table.demo td{border:1px solid var(--border);padding:10px 14px;font-size:.84rem;color:var(--text);}
+table.demo tr:first-child td{background:rgba(232,197,71,.07);font-weight:600;}
+.group{margin-bottom:14px;}
+.group label{font-size:.82rem;color:var(--muted);display:block;margin-bottom:5px;}
+</style>
+<style>
+.field-wrap{margin-bottom:14px;}
+.field-wrap label{font-size:.82rem;color:var(--muted);display:block;margin-bottom:5px;}
+.pw-match{font-size:.72rem;margin-top:4px;min-height:16px;}
+.indicator{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.ind-item{font-size:.72rem;font-family:var(--fm);padding:3px 10px;border-radius:20px;
+  border:1px solid var(--border);color:var(--muted);transition:all .3s;}
+.ind-item.pass{border-color:#4caf82;color:#4caf82;background:rgba(76,175,82,.08);}
+.ind-item.fail{border-color:#ff5f5f;color:#ff5f5f;background:rgba(255,95,95,.08);}
+.submit-area{margin-top:18px;padding-top:14px;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Головна</a> &nbsp;
+<a class="back" href="js-lab.html">🧪 JS-лабораторія</a><br><br>
+
+<h1>📝 Форма з валідацією</h1>
+<p class="subtitle">Завдання 4 — кнопка активна лише при виконанні всіх умов</p>
+
+<div class="card" style="max-width:480px">
+  <div class="card-title">Реєстрація на розсилку</div>
+
+  <div class="field-wrap">
+    <label>Пароль:</label>
+    <input class="inp" type="password" id="pw1" placeholder="Введіть пароль…" oninput="validate()">
+  </div>
+
+  <div class="field-wrap">
+    <label>Підтвердження паролю:</label>
+    <input class="inp" type="password" id="pw2" placeholder="Повторіть пароль…" oninput="validate()">
+    <div class="pw-match" id="pw-match-msg"></div>
+  </div>
+
+  <div class="field-wrap">
+    <label>Ім'я або нікнейм:</label>
+    <input class="inp" type="text" id="username" placeholder="Ваше ім'я…" oninput="validate()">
+  </div>
+
+  <div class="field-wrap">
+    <label>Тематика новин:</label>
+    <select class="sel" id="topic" onchange="validate()">
+      <option value="">— Оберіть тему —</option>
+      <option>Технології</option>
+      <option>Наука</option>
+      <option>Політика</option>
+      <option>Спорт</option>
+      <option>Культура</option>
+      <option>Економіка</option>
+    </select>
+  </div>
+
+  <!-- Індикатори умов -->
+  <div class="indicator">
+    <div class="ind-item fail" id="ind-pw1">Пароль не порожній</div>
+    <div class="ind-item fail" id="ind-pw2">Паролі збігаються</div>
+    <div class="ind-item fail" id="ind-name">Ім'я не порожнє</div>
+    <div class="ind-item fail" id="ind-topic">Тему обрано</div>
+  </div>
+
+  <div class="submit-area">
+    <button class="btn" id="submit-btn" disabled onclick="onSubmit()">
+      Зареєструватися
+    </button>
+    <div class="msg" id="submit-msg"></div>
+  </div>
+</div>
+
+<script>
+function validate() {
+  const pw1   = document.getElementById('pw1').value;
+  const pw2   = document.getElementById('pw2').value;
+  const name  = document.getElementById('username').value.trim();
+  const topic = document.getElementById('topic');
+
+  const okPw1   = pw1.length > 0;
+  const okPw2   = pw1 === pw2 && pw2.length > 0;
+  const okName  = name.length > 0;
+  const okTopic = topic.selectedIndex !== 0;
+
+  setInd('ind-pw1',  okPw1);
+  setInd('ind-pw2',  okPw2);
+  setInd('ind-name', okName);
+  setInd('ind-topic',okTopic);
+
+  const pwMsg = document.getElementById('pw-match-msg');
+  if (pw2.length > 0) {
+    if (okPw2) { pwMsg.className='pw-match ok'; pwMsg.textContent='✓ Паролі збігаються'; }
+    else       { pwMsg.className='pw-match err'; pwMsg.textContent='✗ Паролі не збігаються'; }
+  } else { pwMsg.textContent=''; }
+
+  document.getElementById('submit-btn').disabled = !(okPw1 && okPw2 && okName && okTopic);
+  document.getElementById('submit-msg').textContent = '';
+}
+
+function setInd(id, pass) {
+  const el = document.getElementById(id);
+  el.classList.toggle('pass', pass);
+  el.classList.toggle('fail', !pass);
+}
+
+function onSubmit() {
+  const msg = document.getElementById('submit-msg');
+  msg.className = 'msg ok';
+  msg.textContent = '✅ Реєстрацію успішно завершено!';
+  document.getElementById('submit-btn').disabled = true;
+}
+</script>
+</body></html>

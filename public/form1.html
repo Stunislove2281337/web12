@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Форма 1 — Список і кнопка</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+
+<style>
+:root{--bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c26;--border:rgba(255,255,255,.07);
+  --accent:#e8c547;--accent2:#4f9eff;--accent3:#ff5f5f;--text:#f0f0f0;--muted:#6b6b80;
+  --fd:"Playfair Display",serif;--fb:"DM Sans",sans-serif;--fm:"DM Mono",monospace;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;padding:24px;line-height:1.6;}
+h1{font-family:var(--fd);color:var(--accent);font-size:1.6rem;margin-bottom:8px;}
+.subtitle{color:var(--muted);font-size:.85rem;margin-bottom:28px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:600px;margin-bottom:20px;}
+.card-title{font-family:var(--fm);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+label{font-size:.85rem;color:var(--text);display:block;margin-bottom:6px;}
+.inp{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:8px 12px;color:var(--text);font-family:var(--fb);font-size:.85rem;outline:none;transition:border-color .2s;}
+.inp:focus{border-color:var(--accent);}
+.btn{background:var(--accent);color:#000;border:none;border-radius:8px;padding:9px 22px;
+  font-weight:600;cursor:pointer;font-size:.85rem;transition:opacity .2s;margin-top:10px;}
+.btn:hover:not(:disabled){opacity:.85;}
+.btn:disabled{opacity:.3;cursor:not-allowed;}
+.msg{font-size:.78rem;margin-top:8px;min-height:18px;}
+.msg-ok{color:#4caf82;} .msg-err{color:#ff5f5f;} .msg-warn{color:#e8c547;}
+.sel{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:8px 10px;color:var(--text);font-family:var(--fb);font-size:.85rem;outline:none;cursor:pointer;}
+.sel:focus{border-color:var(--accent);}
+.back{display:inline-block;font-family:var(--fm);font-size:.72rem;color:var(--muted);
+  text-decoration:none;margin-bottom:20px;letter-spacing:.06em;}
+.back:hover{color:var(--accent);}
+</style>
+
+</head>
+<body>
+<a class="back" href="index.html">← Повернутись на головну</a>
+<h1>Форма 1</h1>
+<p class="subtitle">Активація кнопки залежно від вибору у списку</p>
+
+<div class="card">
+  <div class="card-title">📋 Виберіть тему новин</div>
+  <label for="topic-sel">Тема:</label>
+  <select class="sel" id="topic-sel" onchange="onTopicChange()">
+    <option value="">— Оберіть тему —</option>
+    <option>Технології</option>
+    <option>Наука</option>
+    <option>Політика</option>
+    <option>Спорт</option>
+    <option>Культура</option>
+    <option>Економіка</option>
+    <option>Здоров'я</option>
+    <option>Освіта</option>
+    <option>Екологія</option>
+    <option>Розваги</option>
+  </select>
+  <button class="btn" id="sub-btn" disabled onclick="subscribe()">Підписатися</button>
+  <div class="msg" id="sub-msg"></div>
+</div>
+
+<script>
+function onTopicChange() {
+  const sel = document.getElementById('topic-sel');
+  const btn = document.getElementById('sub-btn');
+  btn.disabled = sel.selectedIndex === 0;
+  document.getElementById('sub-msg').textContent = '';
+}
+function subscribe() {
+  const val = document.getElementById('topic-sel').value;
+  const msg = document.getElementById('sub-msg');
+  msg.className = 'msg msg-ok';
+  msg.textContent = '✓ Ви підписалися на тему: ' + val;
+}
+</script>
+</body></html>

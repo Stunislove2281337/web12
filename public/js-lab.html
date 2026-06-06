@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JS-лабораторія — NewsFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c26;--border:rgba(255,255,255,.07);
+  --accent:#e8c547;--accent2:#4f9eff;--accent3:#ff5f5f;--text:#f0f0f0;--muted:#6b6b80;
+  --fd:"Playfair Display",serif;--fb:"DM Sans",sans-serif;--fm:"DM Mono",monospace;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;padding:24px;line-height:1.6;}
+h1{font-family:var(--fd);color:var(--accent);font-size:1.5rem;margin-bottom:6px;}
+.subtitle{color:var(--muted);font-size:.84rem;margin-bottom:24px;}
+.back{display:inline-block;font-family:var(--fm);font-size:.72rem;color:var(--muted);text-decoration:none;margin-bottom:18px;letter-spacing:.06em;}
+.back:hover{color:var(--accent);}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;max-width:660px;margin-bottom:18px;}
+.card-title{font-family:var(--fm);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.inp{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:8px 12px;color:var(--text);font-family:var(--fb);font-size:.85rem;outline:none;transition:border-color .2s;box-sizing:border-box;}
+.inp:focus{border-color:var(--accent);}
+textarea.inp{resize:vertical;min-height:80px;font-family:var(--fm);font-size:.78rem;}
+.btn{background:var(--accent);color:#000;border:none;border-radius:8px;padding:8px 20px;
+  font-weight:600;cursor:pointer;font-size:.84rem;transition:opacity .2s;margin-top:10px;}
+.btn:hover:not(:disabled){opacity:.85;}
+.btn:disabled{opacity:.28;cursor:not-allowed;}
+.btn-sec{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.btn-sec:hover:not(:disabled){border-color:var(--accent);color:var(--accent);opacity:1;}
+.msg{font-size:.78rem;margin-top:8px;min-height:18px;padding:0 2px;}
+.ok{color:#4caf82;} .err{color:#ff5f5f;} .warn{color:#e8c547;}
+.result-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:10px 14px;font-family:var(--fm);font-size:.78rem;color:var(--accent2);margin-top:10px;
+  white-space:pre-wrap;word-break:break-all;min-height:36px;}
+.row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;}
+.sel{background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:8px 10px;color:var(--text);font-family:var(--fb);font-size:.85rem;outline:none;width:100%;cursor:pointer;}
+.sel:focus{border-color:var(--accent);}
+table.demo{width:100%;border-collapse:collapse;margin-bottom:12px;}
+table.demo td{border:1px solid var(--border);padding:10px 14px;font-size:.84rem;color:var(--text);}
+table.demo tr:first-child td{background:rgba(232,197,71,.07);font-weight:600;}
+.group{margin-bottom:14px;}
+.group label{font-size:.82rem;color:var(--muted);display:block;margin-bottom:5px;}
+</style>
+<style>
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:660px;}
+@media(max-width:600px){.grid2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Головна</a> &nbsp;
+<a class="back" href="js-lab.html">🧪 JS-лабораторія</a>
+<a class="back" href="js-forms.html" style="margin-left:10px">📝 Форма валідації</a><br><br>
+<h1>🧪 JS-лабораторія</h1>
+<p class="subtitle">Приклади 1–5 + завдання 2–3 + функції 6–12</p>
+
+<!-- ПРИКЛАД 1: Life номер -->
+<div class="card">
+  <div class="card-title">Приклад 1 — Перевірка номера Life (063/093)</div>
+  <div class="group"><label>Введіть номер:</label>
+    <input class="inp" id="p1-in" placeholder="0631234567 або 80931234567" oninput="checkLife()">
+  </div>
+  <div class="msg" id="p1-msg"></div>
+</div>
+
+<!-- ПРИКЛАД 2: Стаціонарний Львів -->
+<div class="card">
+  <div class="card-title">Приклад 2 — Стаціонарний номер Львова</div>
+  <div class="group"><label>Введіть номер (без коду міста):</label>
+    <input class="inp" id="p2-in" placeholder="2977777 або 123456" oninput="checkLvivFixed()">
+  </div>
+  <div class="msg" id="p2-msg"></div>
+</div>
+
+<!-- ПРИКЛАД 3: Зайві пробіли -->
+<div class="card">
+  <div class="card-title">Приклад 3 — Видалення зайвих пробілів</div>
+  <div class="group"><label>Вхідний текст:</label>
+    <input class="inp" id="p3-in" value="  Привіт   світ    як  справи  ">
+  </div>
+  <button class="btn" onclick="removeExtraSpaces()">Очистити пробіли</button>
+  <div class="result-box" id="p3-out"></div>
+</div>
+
+<!-- ПРИКЛАД 4: Видалення HTML-тегів -->
+<div class="card">
+  <div class="card-title">Приклад 4 — Видалення HTML-тегів</div>
+  <div class="group"><label>Вхідний HTML:</label>
+    <textarea class="inp" id="p4-in">&lt;h1&gt;Заголовок&lt;/h1&gt;&lt;p&gt;Текст &lt;b&gt;жирний&lt;/b&gt; і &lt;i&gt;курсив&lt;/i&gt;&lt;/p&gt;</textarea>
+  </div>
+  <button class="btn" onclick="removeTags()">Видалити теги</button>
+  <div class="result-box" id="p4-out"></div>
+</div>
+
+<!-- ПРИКЛАД 5: Натуральне число -->
+<div class="card">
+  <div class="card-title">Приклад 5 — Перевірка натурального числа</div>
+  <div class="group"><label>Введіть рядок:</label>
+    <input class="inp" id="p5-in" placeholder="Наприклад: 42 або abc123" oninput="checkNatural()">
+  </div>
+  <div class="msg" id="p5-msg"></div>
+</div>
+
+<!-- ЗАВДАННЯ 2: Стилізація поля паролю -->
+<div class="card">
+  <div class="card-title">Завдання 2 — Стилізація поля паролю кнопкою</div>
+  <div class="row">
+    <input class="inp" id="t2-pw" type="password" placeholder="Введіть пароль…" style="flex:1">
+    <button class="btn" onclick="stylePassword()">Застосувати стиль</button>
+    <button class="btn btn-sec" onclick="resetPassword()">Скинути</button>
+  </div>
+</div>
+
+<!-- ЗАВДАННЯ 3: Таблиця, приховати рядки -->
+<div class="card">
+  <div class="card-title">Завдання 3 — Приховати рядки таблиці</div>
+  <table class="demo" id="t3-table">
+    <tr id="t3-r1"><td>Рядок 1, стовпець 1</td><td>Рядок 1, стовпець 2</td></tr>
+    <tr id="t3-r2"><td>Рядок 2, стовпець 1</td><td>Рядок 2, стовпець 2</td></tr>
+    <tr id="t3-r3"><td>Рядок 3, стовпець 1</td><td>Рядок 3, стовпець 2</td></tr>
+  </table>
+  <div class="row">
+    <button class="btn" onclick="hideRows()">Сховати рядки 1 і 3</button>
+    <button class="btn btn-sec" onclick="showRows()">Показати всі</button>
+  </div>
+  <div class="msg warn" style="margin-top:8px">Рядок 1 → display:none &nbsp;|&nbsp; Рядок 3 → visibility:hidden</div>
+</div>
+
+<!-- ЗАВДАННЯ 6: Всі мобільні оператори -->
+<div class="card">
+  <div class="card-title">Завдання 6 — Будь-який мобільний оператор України</div>
+  <div class="group"><label>Номер телефону:</label>
+    <input class="inp" id="t6-in" placeholder="0501234567, +380671234567…" oninput="checkAnyMobile()">
+  </div>
+  <div class="msg" id="t6-msg"></div>
+</div>
+
+<!-- ЗАВДАННЯ 7: Поштовий індекс Львова -->
+<div class="card">
+  <div class="card-title">Завдання 7 — Поштовий індекс Львова (7900x–7906x)</div>
+  <div class="group"><label>Поштовий індекс:</label>
+    <input class="inp" id="t7-in" placeholder="79000–79069" oninput="checkLvivPostal()">
+  </div>
+  <div class="msg" id="t7-msg"></div>
+</div>
+
+<!-- ЗАВДАННЯ 8: Львівський номер з кодом та дефісами -->
+<div class="card">
+  <div class="card-title">Завдання 8 — Львівський міський номер (з кодом/дефісами)</div>
+  <div class="group"><label>Номер:</label>
+    <input class="inp" id="t8-in" placeholder="2977777 або (032)2977777 або 297-77-77" oninput="checkLvivFull()">
+  </div>
+  <div class="msg" id="t8-msg"></div>
+</div>
+
+<!-- ЗАВДАННЯ 9: Видалення HTML-коментарів -->
+<div class="card">
+  <div class="card-title">Завдання 9 — Видалення HTML-коментарів</div>
+  <div class="group"><label>Вхідний текст:</label>
+    <textarea class="inp" id="t9-in">Текст &lt;!-- це коментар --&gt; далі &lt;!-- ще один --&gt; кінець</textarea>
+  </div>
+  <button class="btn" onclick="removeComments()">Видалити коментарі</button>
+  <div class="result-box" id="t9-out"></div>
+</div>
+
+<!-- ЗАВДАННЯ 10: Видалення p/font/br/hr -->
+<div class="card">
+  <div class="card-title">Завдання 10 — Видалення тегів &lt;p&gt; &lt;font&gt; &lt;br&gt; &lt;hr&gt;</div>
+  <div class="group"><label>Вхідний текст:</label>
+    <textarea class="inp" id="t10-in">&lt;p&gt;Абзац&lt;/p&gt;&lt;br&gt;Новий рядок&lt;hr&gt;&lt;font color="red"&gt;Червоний&lt;/font&gt;</textarea>
+  </div>
+  <button class="btn" onclick="removeSpecificTags()">Видалити теги</button>
+  <div class="result-box" id="t10-out"></div>
+</div>
+
+<!-- ЗАВДАННЯ 11: Trim пробілів -->
+<div class="card">
+  <div class="card-title">Завдання 11 — Видалення крайніх пробілів</div>
+  <div class="group"><label>Вхідний рядок:</label>
+    <input class="inp" id="t11-in" value="   текст     із пробілами     ">
+  </div>
+  <button class="btn" onclick="trimSpaces()">Обрізати</button>
+  <div class="result-box" id="t11-out"></div>
+</div>
+
+<!-- ЗАВДАННЯ 12: Перевірка року -->
+<div class="card">
+  <div class="card-title">Завдання 12 — Рік у межах 1900–2099</div>
+  <div class="group"><label>Введіть рік:</label>
+    <input class="inp" id="t12-in" placeholder="1900–2099" oninput="checkYear()">
+  </div>
+  <div class="msg" id="t12-msg"></div>
+</div>
+
+<script>
+// ─── ФУНКЦІЇ ───────────────────────────────────────────
+
+// Приклад 1: Life (063/093), необов'язкова 8 попереду, 7 цифр
+function isLifeNumber(s) {
+  return /^8?(063|093)\d{7}$/.test(s.trim());
+}
+function checkLife() {
+  const v = document.getElementById('p1-in').value;
+  const m = document.getElementById('p1-msg');
+  if (!v) { m.textContent=''; return; }
+  if (isLifeNumber(v)) {
+    m.className='msg ok'; m.textContent='✓ Коректний номер Life';
+  } else {
+    m.className='msg err'; m.textContent='✗ Не є номером Life (потрібен формат: [8]063/093XXXXXXX)';
+  }
+}
+
+// Приклад 2: Стаціонарний Львів — 7 цифр починається на 2, або 6 будь-яких цифр
+function isLvivFixed(s) {
+  return /^(2\d{6}|\d{6})$/.test(s.trim());
+}
+function checkLvivFixed() {
+  const v = document.getElementById('p2-in').value;
+  const m = document.getElementById('p2-msg');
+  if (!v) { m.textContent=''; return; }
+  if (isLvivFixed(v)) {
+    m.className='msg ok'; m.textContent='✓ Коректний стаціонарний номер Львова';
+  } else {
+    m.className='msg err'; m.textContent='✗ Не є стаціонарним номером Львова';
+  }
+}
+
+// Приклад 3: Видалення зайвих пробілів
+function removeExtraSpacesStr(s) {
+  return s.replace(/\s+/g, ' ');
+}
+function removeExtraSpaces() {
+  const v = document.getElementById('p3-in').value;
+  document.getElementById('p3-out').textContent = '"' + removeExtraSpacesStr(v) + '"';
+}
+
+// Приклад 4: Видалення HTML-тегів
+function removeHtmlTags(s) {
+  return s.replace(/<[^>]*>/g, '');
+}
+function removeTags() {
+  const v = document.getElementById('p4-in').value;
+  document.getElementById('p4-out').textContent = removeHtmlTags(v);
+}
+
+// Приклад 5: Натуральне число
+function isNatural(s) {
+  return /^[1-9]\d*$/.test(s.trim());
+}
+function checkNatural() {
+  const v = document.getElementById('p5-in').value;
+  const m = document.getElementById('p5-msg');
+  if (!v) { m.textContent=''; return; }
+  if (isNatural(v)) {
+    m.className='msg ok'; m.textContent='✓ Є натуральним числом';
+  } else {
+    m.className='msg err'; m.textContent='✗ Не є натуральним числом';
+  }
+}
+
+// Завдання 2: стилізація поля паролю
+function stylePassword() {
+  const el = document.getElementById('t2-pw');
+  el.style.backgroundColor = 'red';
+  el.style.color            = 'white';
+  el.style.fontSize         = '10pt';
+  el.style.height           = '28px';
+  el.style.padding          = '0 10px';
+}
+function resetPassword() {
+  const el = document.getElementById('t2-pw');
+  el.style.cssText = '';
+  el.className = 'inp';
+}
+
+// Завдання 3: сховати/показати рядки таблиці
+function hideRows() {
+  document.getElementById('t3-r1').style.display    = 'none';       // не займає місця
+  document.getElementById('t3-r3').style.visibility = 'hidden';     // займає місце
+}
+function showRows() {
+  document.getElementById('t3-r1').style.display    = '';
+  document.getElementById('t3-r3').style.visibility = 'visible';
+}
+
+// Завдання 6: Будь-який мобільний оператор України
+function isUkrMobile(s) {
+  // Коди: 039,050,063,066,067,068,073,091,092,093,094,095,096,097,098,099
+  return /^(\+?38)?0(39|50|63|66|67|68|73|91|92|93|94|95|96|97|98|99)\d{7}$/.test(s.trim().replace(/[\s\-()]/g,''));
+}
+function checkAnyMobile() {
+  const v = document.getElementById('t6-in').value;
+  const m = document.getElementById('t6-msg');
+  if (!v) { m.textContent=''; return; }
+  if (isUkrMobile(v)) {
+    m.className='msg ok'; m.textContent='✓ Коректний мобільний номер України';
+  } else {
+    m.className='msg err'; m.textContent='✗ Не є мобільним номером українського оператора';
+  }
+}
+
+// Завдання 7: Поштовий індекс Львова (79000–79069)
+function isLvivPostal(s) {
+  const n = parseInt(s.trim(), 10);
+  return /^\d{5}$/.test(s.trim()) && n >= 79000 && n <= 79069;
+}
+function checkLvivPostal() {
+  const v = document.getElementById('t7-in').value;
+  const m = document.getElementById('t7-msg');
+  if (!v) { m.textContent=''; return; }
+  if (isLvivPostal(v)) {
+    m.className='msg ok'; m.textContent='✓ Коректний поштовий індекс Львова';
+  } else {
+    m.className='msg err'; m.textContent='✗ Не є поштовим індексом Львова (79000–79069)';
+  }
+}
+
+// Завдання 8: Львівський міський номер з кодом та дефісами
+function isLvivFullPhone(s) {
+  const clean = s.trim().replace(/[\s\-()]/g, '');
+  // Варіанти: 2XXXXXX | XXXXXX | 0322XXXXXX | 80322XXXXXX | +380322XXXXXX
+  return /^(\+?3?8?0?32)?(2\d{6}|\d{6})$/.test(clean);
+}
+function checkLvivFull() {
+  const v = document.getElementById('t8-in').value;
+  const m = document.getElementById('t8-msg');
+  if (!v) { m.textContent=''; return; }
+  if (isLvivFull(v)) {
+    m.className='msg ok'; m.textContent='✓ Коректний львівський номер';
+  } else {
+    m.className='msg err'; m.textContent='✗ Не є коректним львівським номером';
+  }
+}
+// аліас для inline
+function isLvivFull(s) { return isLvivFullPhone(s); }
+
+// Завдання 9: Видалення HTML-коментарів
+function removeHtmlComments(s) {
+  let result = s;
+  let start = result.indexOf('<!--');
+  while (start !== -1) {
+    let end = result.indexOf('-->', start);
+    if (end === -1) break;
+    result = result.slice(0, start) + result.slice(end + 3);
+    start = result.indexOf('<!--');
+  }
+  return result;
+}
+
+function removeComments() {
+  const v = document.getElementById('t9-in').value;
+  document.getElementById('t9-out').textContent = removeHtmlComments(v);
+}
+
+// Завдання 10: Видалення тегів <p> <font> <br> <hr>
+function removeSpecificHtmlTags(s) {
+  return s.replace(/<\/?(?:p|font|br|hr)[^>]*>/gi, '');
+}
+function removeSpecificTags() {
+  const v = document.getElementById('t10-in').value;
+  document.getElementById('t10-out').textContent = removeSpecificHtmlTags(v);
+}
+
+// Завдання 11: Trim — видалення крайніх пробілів
+function trimEdgeSpaces(s) {
+  return s.replace(/^\s+|\s+$/g, '');
+}
+function trimSpaces() {
+  const v = document.getElementById('t11-in').value;
+  document.getElementById('t11-out').textContent = '"' + trimEdgeSpaces(v) + '"';
+}
+
+// Завдання 12: Рік 1900–2099
+function isValidYear(s) {
+  return /^(19|20)\d{2}$/.test(s.trim());
+}
+function checkYear() {
+  const v = document.getElementById('t12-in').value;
+  const m = document.getElementById('t12-msg');
+  if (!v) { m.textContent=''; return; }
+  if (isValidYear(v)) {
+    m.className='msg ok'; m.textContent='✓ Коректний рік (' + v + ')';
+  } else {
+    m.className='msg err'; m.textContent='✗ Рік має бути від 1900 до 2099';
+  }
+}
+</script>
+</body></html>

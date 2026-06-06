@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Форма 2 — Район і вулиці</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+
+<style>
+:root{--bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c26;--border:rgba(255,255,255,.07);
+  --accent:#e8c547;--accent2:#4f9eff;--accent3:#ff5f5f;--text:#f0f0f0;--muted:#6b6b80;
+  --fd:"Playfair Display",serif;--fb:"DM Sans",sans-serif;--fm:"DM Mono",monospace;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;padding:24px;line-height:1.6;}
+h1{font-family:var(--fd);color:var(--accent);font-size:1.6rem;margin-bottom:8px;}
+.subtitle{color:var(--muted);font-size:.85rem;margin-bottom:28px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:600px;margin-bottom:20px;}
+.card-title{font-family:var(--fm);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+label{font-size:.85rem;color:var(--text);display:block;margin-bottom:6px;}
+.inp{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:8px 12px;color:var(--text);font-family:var(--fb);font-size:.85rem;outline:none;transition:border-color .2s;}
+.inp:focus{border-color:var(--accent);}
+.btn{background:var(--accent);color:#000;border:none;border-radius:8px;padding:9px 22px;
+  font-weight:600;cursor:pointer;font-size:.85rem;transition:opacity .2s;margin-top:10px;}
+.btn:hover:not(:disabled){opacity:.85;}
+.btn:disabled{opacity:.3;cursor:not-allowed;}
+.msg{font-size:.78rem;margin-top:8px;min-height:18px;}
+.msg-ok{color:#4caf82;} .msg-err{color:#ff5f5f;} .msg-warn{color:#e8c547;}
+.sel{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:8px 10px;color:var(--text);font-family:var(--fb);font-size:.85rem;outline:none;cursor:pointer;}
+.sel:focus{border-color:var(--accent);}
+.back{display:inline-block;font-family:var(--fm);font-size:.72rem;color:var(--muted);
+  text-decoration:none;margin-bottom:20px;letter-spacing:.06em;}
+.back:hover{color:var(--accent);}
+</style>
+
+<style>
+.street-item{padding:5px 10px;border-radius:5px;background:var(--surface2);
+  border-left:2px solid var(--accent2);font-size:.82rem;color:var(--text);}
+.streets-grid{display:flex;flex-direction:column;gap:5px;margin-top:10px;max-height:280px;overflow-y:auto;}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Повернутись на головну</a>
+<h1>Форма 2</h1>
+<p class="subtitle">Вулиці Львова за районом (з опцією «Всі райони»)</p>
+
+<div class="card">
+  <div class="card-title">📍 Вибір району</div>
+  <select class="sel" id="dist2" onchange="onDist2()">
+    <option value="">— Виберіть район —</option>
+    <option value="all">Всі райони</option>
+    <option value="Галицький">Галицький</option>
+    <option value="Личаківський">Личаківський</option>
+    <option value="Франківський">Франківський</option>
+    <option value="Сихівський">Сихівський</option>
+    <option value="Залізничний">Залізничний</option>
+  </select>
+  <div id="streets2-wrap" style="display:none">
+    <div style="font-family:var(--fm);font-size:.7rem;color:var(--muted);margin-top:12px;margin-bottom:6px;" id="streets2-label"></div>
+    <div class="streets-grid" id="streets2-list"></div>
+  </div>
+</div>
+
+<script>
+const STREETS2 = {
+  'Галицький':    ['вул. Личаківська','вул. Дорошенка','вул. Театральна','пл. Ринок','вул. Руська','вул. Валова'],
+  'Личаківський': ['вул. Личаківська','вул. Мечникова','вул. Пасічна','вул. Стрийська','вул. Шота Руставелі'],
+  'Франківський': ['вул. Франка','вул. Наукова','вул. Куліша','вул. Коцюбинського','вул. Сахарова'],
+  'Сихівський':   ['вул. Сихівська','вул. Хуторівка','вул. Червоної Калини','вул. Кульпарківська','вул. Зубрівська'],
+  'Залізничний':  ['вул. Городоцька','вул. Залізнична','вул. Промислова','вул. Хімічна','вул. Тракт Глинянський'],
+};
+function onDist2() {
+  const val = document.getElementById('dist2').value;
+  const wrap = document.getElementById('streets2-wrap');
+  const list = document.getElementById('streets2-list');
+  const lbl  = document.getElementById('streets2-label');
+  if (!val) { wrap.style.display='none'; return; }
+  wrap.style.display = 'block';
+  let streets = [];
+  if (val === 'all') {
+    lbl.textContent = 'ВУЛИЦІ ВСІХ РАЙОНІВ';
+    Object.entries(STREETS2).forEach(([d,arr]) => {
+      arr.forEach(s => streets.push('[' + d + '] ' + s));
+    });
+  } else {
+    lbl.textContent = 'ВУЛИЦІ РАЙОНУ: ' + val.toUpperCase();
+    streets = STREETS2[val] || [];
+  }
+  list.innerHTML = streets.map(s => '<div class="street-item">' + s + '</div>').join('');
+}
+</script>
+</body></html>

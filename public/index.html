@@ -318,18 +318,24 @@ function setStatus(msg,cls){
 }
 
 async function loadAllFeeds() {
-  setStatus('⏳ Завантаження RSS-каналів…','');
-  const results = await Promise.allSettled(FEEDS.map(f=>fetchFeed(f)));
-  const loaded = results.flatMap(r=>r.status==='fulfilled'?r.value:[]);
+  const res = await fetch(API);
+  const data = await res.json();
 
-  if (loaded.length===0) {
-    allArticles = FALLBACK;
-    setStatus('⚠ RSS недоступний — показано демо-дані (відкрийте через веб-сервер)','status-err');
-  } else {
-    allArticles = loaded.sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate));
-    setStatus(`✓ Завантажено ${allArticles.length} новин з ${new Set(loaded.map(a=>a.source)).size} джерел`,'status-ok');
+  allArticles = data.items;
+
+  if (!allArticles.length) {
+    document.getElementById('news-list').innerHTML =
+      '<div class="error-msg">⚠ Нема новин</div>';
+    return;
   }
-  updateInformers(); buildFilters(); buildTags(); buildActivityChart(); buildSourceList(); buildTicker(); applyFilter();
+
+  updateInformers();
+  buildFilters();
+  buildTags();
+  buildActivityChart();
+  buildSourceList();
+  buildTicker();
+  applyFilter();
 }
 
 function updateInformers(){

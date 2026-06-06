@@ -288,14 +288,7 @@ footer{margin-top:40px;padding:20px 24px;border-top:1px solid var(--border);disp
 </footer>
 
 <script>
-const PROXY = 'https://allorigins.win/get?disableCache=true&url=';
-const FEEDS = [
-  {url:'https://feeds.bbci.co.uk/news/world/rss.xml',      name:'BBC World',  cat:'Світ',       clr:'#4f9eff'},
-  {url:'https://feeds.bbci.co.uk/news/technology/rss.xml', name:'BBC Tech',   cat:'Технології', clr:'#4caf82'},
-  {url:'https://feeds.bbci.co.uk/news/science_and_environment/rss.xml', name:'BBC Science', cat:'Наука', clr:'#e8c547'},
-  {url:'https://rss.nytimes.com/services/xml/rss/nyt/World.xml', name:'NYT World', cat:'Політика', clr:'#ff5f5f'},
-  {url:'https://www.theguardian.com/world/rss',             name:'Guardian',   cat:'Аналітика',  clr:'#c77dff'},
-];
+const API = '/api/news';
 
 // Демо-дані як запасний варіант
 const FALLBACK = [
@@ -318,22 +311,6 @@ let allArticles=[], filtered=[], activeFilter='all', searchQuery='', displayCoun
 setInterval(()=>{
   document.getElementById('clock').textContent = new Date().toLocaleTimeString('uk-UA');
 },1000);
-
-async function fetchFeed(feed) {
-  try {
-    const resp = await fetch(PROXY + encodeURIComponent(feed.url), {signal:AbortSignal.timeout(9000)});
-    const json = await resp.json();
-    if (!json.contents) return [];
-    const dom = new DOMParser().parseFromString(json.contents, 'application/xml');
-    return [...dom.querySelectorAll('item')].slice(0,15).map(item => ({
-      title:   item.querySelector('title')?.textContent?.trim() || '',
-      desc:    (item.querySelector('description')?.textContent||'').replace(/<[^>]*>/g,'').substring(0,160).trim(),
-      link:    item.querySelector('link')?.textContent?.trim() || '#',
-      pubDate: item.querySelector('pubDate')?.textContent || new Date().toISOString(),
-      source:  feed.name, cat:feed.cat, clr:feed.clr,
-    })).filter(a=>a.title);
-  } catch(e) { console.warn(feed.name, e.message); return []; }
-}
 
 function setStatus(msg,cls){
   const el=document.getElementById('status-bar');
